@@ -12,6 +12,7 @@ import {
   LogOut,
   Menu,
   Search,
+  UserCog,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -23,6 +24,7 @@ const navItems = [
   { href: '/dashboard/relatorios', label: 'Relatórios', icon: FileText },
   { href: '/dashboard/consultas', label: 'Consultas', icon: Search },
   { href: '/dashboard/financeiro', label: 'Financeiro', icon: DollarSign },
+  { href: '/dashboard/perfil', label: 'Meu Perfil', icon: UserCog },
 ];
 
 export function AppSidebar() {
@@ -72,7 +74,7 @@ export function AppSidebar() {
 
       <div className="px-2 pb-4 border-t border-sidebar-border pt-3">
         {!collapsed && (
-          <p className="px-3 text-xs text-sidebar-foreground/40 truncate mb-2">{user?.email}</p>
+          <p className="px-3 text-xs text-sidebar-foreground/40 truncate mb-2">{user?.aliasName || user?.name}</p>
         )}
         <button
           onClick={logout}

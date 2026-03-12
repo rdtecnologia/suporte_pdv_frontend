@@ -5,9 +5,10 @@ import { loginRequest, getMeRequest } from '@/lib/api';
 
 interface User {
   id: string;
-  email: string;
+  cnpjCpf: string;
   name: string;
   commercialName: string;
+  aliasName: string;
 }
 
 interface AuthContextValue {
@@ -15,6 +16,7 @@ interface AuthContextValue {
   isLoading: boolean;
   login: (cnpjCpf: string, password: string) => Promise<void>;
   logout: () => void;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -56,8 +58,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     window.location.href = '/login';
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (token) {
+      await fetchUser(token);
+    }
+  }, [fetchUser]);
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );
