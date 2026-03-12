@@ -80,7 +80,24 @@ export interface Transaction {
   valor: number;
   status: 'PAGO' | 'ABERTO' | 'RECUSADO';
   placa: string;
+  tipoVeiculo: string;
   formaPagamento: string;
+}
+
+export interface SearchTransactionsResponse {
+  data: Transaction[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+export interface SearchFilters {
+  startDate?: string;
+  endDate?: string;
+  licensePlate?: string;
+  vehicleType?: string;
+  page?: number;
+  limit?: number;
 }
 
 export async function getTransactionsRequest(token: string) {
@@ -93,4 +110,31 @@ export async function getTransactionsRequest(token: string) {
   }
 
   return res.json() as Promise<Transaction[]>;
+}
+
+export async function searchTransactionsRequest(
+  token: string,
+  filters: SearchFilters,
+) {
+  const params = new URLSearchParams();
+  
+  if (filters.startDate) params.append('startDate', filters.startDate);
+  if (filters.endDate) params.append('endDate', filters.endDate);
+  if (filters.licensePlate) params.append('licensePlate', filters.licensePlate);
+  if (filters.vehicleType) params.append('vehicleType', filters.vehicleType);
+  if (filters.page) params.append('page', filters.page.toString());
+  if (filters.limit) params.append('limit', filters.limit.toString());
+
+  const res = await fetch(
+    `${TRANSACTION_API}/transactions/search?${params.toString()}`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    },
+  );
+
+  if (!res.ok) {
+    throw new Error('Erro ao buscar transações');
+  }
+
+  return res.json() as Promise<SearchTransactionsResponse>;
 }

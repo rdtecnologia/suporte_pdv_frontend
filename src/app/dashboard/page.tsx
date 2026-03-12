@@ -9,6 +9,8 @@ import {
   ShoppingCart,
   TrendingUp,
   Loader2,
+  Car,
+  Bike,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -196,6 +198,7 @@ export default function DashboardPage() {
                     <TableHead>Valor</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Placa</TableHead>
+                    <TableHead>Tipo</TableHead>
                     <TableHead>Pagamento</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -210,6 +213,16 @@ export default function DashboardPage() {
                         <StatusBadge status={tx.status} />
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{tx.placa}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1.5">
+                          {tx.tipoVeiculo.toLowerCase().includes('moto') ? (
+                            <Bike className="h-4 w-4 text-muted-foreground" />
+                          ) : (
+                            <Car className="h-4 w-4 text-muted-foreground" />
+                          )}
+                          <span className="text-sm">{tx.tipoVeiculo}</span>
+                        </div>
+                      </TableCell>
                       <TableCell className="text-sm">{tx.formaPagamento}</TableCell>
                     </TableRow>
                   ))}
