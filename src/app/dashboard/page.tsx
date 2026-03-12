@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import {
   AlertTriangle,
   CalendarDays,
@@ -7,6 +8,7 @@ import {
   Percent,
   ShoppingCart,
   TrendingUp,
+  Loader2,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,6 +21,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { StatusBadge } from '@/components/StatusBadge';
+import { getTransactionsRequest, Transaction } from '@/lib/api';
 
 const mockStats = {
   vendasSemana: 76,
@@ -31,13 +34,7 @@ const mockStats = {
   valorAtraso: 735.0,
 };
 
-const mockTransactions = [
-  { id: '1', periodo: '09/02/2026 às 14:13:43', valor: 15.0, status: 'ABERTO', cnpj: '859.473.856-00', formaPagamento: 'PIX' },
-  { id: '2', periodo: '07/02/2026 às 13:15:49', valor: 4.0, status: 'ATRASADO', cnpj: '126.845.766-37', formaPagamento: 'PIX' },
-  { id: '3', periodo: '07/02/2026 às 10:50:02', valor: 20.0, status: 'PAGO', cnpj: '156.060.846-35', formaPagamento: 'PIX' },
-  { id: '4', periodo: '06/02/2026 às 12:28:35', valor: 30.0, status: 'ATRASADO', cnpj: '903.498.816-34', formaPagamento: 'PIX' },
-  { id: '5', periodo: '06/02/2026 às 07:36:46', valor: 50.0, status: 'PAGO', cnpj: '971.439.367-15', formaPagamento: 'PIX' },
-];
+const TOKEN_KEY = 'suporte_pdv_token';
 
 function StatCard({
   label,
@@ -71,6 +68,27 @@ function StatCard({
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [transactionsLoading, setTransactionsLoading] = useState(true);
+  const [transactionsError, setTransactionsError] = useState('');
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      try {
+        const token = localStorage.getItem(TOKEN_KEY);
+        if (!token) return;
+
+        const data = await getTransactionsRequest(token);
+        setTransactions(data);
+      } catch (err) {
+        setTransactionsError(err instanceof Error ? err.message : 'Erro ao carregar transações');
+      } finally {
+        setTransactionsLoading(false);
+      }
+    };
+
+    fetchTransactions();
+  }, []);
 
   return (
     <div className="p-6 space-y-6 animate-fade-in">
@@ -155,35 +173,49 @@ export default function DashboardPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-base font-semibold text-foreground">Transações do Dia</h2>
+        <h2 className="text-base font-semibold text-foreground">10 últimas transações efetuadas</h2>
         <Card>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Valor</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>CPF/CNPJ</TableHead>
-                  <TableHead>Pagamento</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {mockTransactions.map((tx) => (
-                  <TableRow key={tx.id}>
-                    <TableCell className="text-sm">{tx.periodo}</TableCell>
-                    <TableCell className="text-sm font-medium">
-                      R$ {tx.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </TableCell>
-                    <TableCell>
-                      <StatusBadge status={tx.status} />
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{tx.cnpj}</TableCell>
-                    <TableCell className="text-sm">{tx.formaPagamento}</TableCell>
+            {transactionsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : transactionsError ? (
+              <div className="flex items-center justify-center py-8">
+                <p className="text-sm text-destructive">{transactionsError}</p>
+              </div>
+            ) : transactions.length === 0 ? (
+              <div className="flex items-center justify-center py-8">
+                <p className="text-sm text-muted-foreground">Nenhuma transação encontrada</p>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Valor</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Placa</TableHead>
+                    <TableHead>Pagamento</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {transactions.map((tx) => (
+                    <TableRow key={tx.id}>
+                      <TableCell className="text-sm">{tx.data}</TableCell>
+                      <TableCell className="text-sm font-medium">
+                        R$ {tx.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge status={tx.status} />
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{tx.placa}</TableCell>
+                      <TableCell className="text-sm">{tx.formaPagamento}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
       </section>

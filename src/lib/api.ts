@@ -1,5 +1,6 @@
 const AUTH_API = 'http://localhost:3001';
 const USER_API = 'http://localhost:3002';
+const TRANSACTION_API = 'http://localhost:3003';
 
 export async function loginRequest(cnpjCpf: string, password: string) {
   const res = await fetch(`${AUTH_API}/auth/login`, {
@@ -71,4 +72,25 @@ export async function updatePasswordRequest(
   }
 
   return res.json() as Promise<{ message: string }>;
+}
+
+export interface Transaction {
+  id: string;
+  data: string;
+  valor: number;
+  status: 'PAGO' | 'ABERTO' | 'RECUSADO';
+  placa: string;
+  formaPagamento: string;
+}
+
+export async function getTransactionsRequest(token: string) {
+  const res = await fetch(`${TRANSACTION_API}/transactions`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!res.ok) {
+    throw new Error('Erro ao buscar transações');
+  }
+
+  return res.json() as Promise<Transaction[]>;
 }
