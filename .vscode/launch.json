@@ -2,12 +2,20 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "** FRONT PDV ───────",
+            "request": "launch",
+            "type": "node"
+        },
+        {
             "name": "Next.js: debug server-side",
             "type": "node",
             "request": "attach",
             "port": 9230,
             "sourceMaps": true,
-            "skipFiles": ["<node_internals>/**", "**/node_modules/**"]
+            "skipFiles": [
+                "<node_internals>/**",
+                "**/node_modules/**"
+            ]
         },
         {
             "name": "Next.js: debug client-side",
@@ -20,7 +28,10 @@
     "compounds": [
         {
             "name": "Next.js: debug full-stack",
-            "configurations": ["Next.js: debug server-side", "Next.js: debug client-side"]
+            "configurations": [
+                "Next.js: debug server-side",
+                "Next.js: debug client-side"
+            ]
         }
     ]
 }
