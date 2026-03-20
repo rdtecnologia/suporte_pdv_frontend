@@ -182,6 +182,31 @@ export async function getTransactionsRequest(token: string) {
   return res.json() as Promise<Transaction[]>;
 }
 
+export interface BotPdvMe {
+  id: number;
+  domain: string;
+  botHml: string | null;
+  botPrd: string | null;
+  createdAt: string;
+}
+
+export function getBotPdvUrlForEnv(row: BotPdvMe, env: AppEnv): string | null {
+  const url = env === 'PROD' ? row.botPrd : row.botHml;
+  const t = url?.trim();
+  return t || null;
+}
+
+export async function getBotPdvMeRequest(token: string) {
+  const res = await fetch(`${TRANSACTION_API}/bot-pdv/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { message?: string }).message || 'Erro ao carregar POS Web');
+  }
+  return res.json() as Promise<BotPdvMe>;
+}
+
 export async function searchTransactionsRequest(
   token: string,
   filters: SearchFilters,

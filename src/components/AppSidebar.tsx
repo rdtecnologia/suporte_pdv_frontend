@@ -7,10 +7,10 @@ import {
   ChevronLeft,
   CreditCard,
   DollarSign,
-  FileText,
   LayoutDashboard,
   LogOut,
   Menu,
+  Monitor,
   Search,
   Server,
   UserCog,
@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/button';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/dashboard/relatorios', label: 'Relatórios', icon: FileText },
+  { href: '/dashboard/pos-web', label: 'POS Web', icon: Monitor },
   { href: '/dashboard/consultas', label: 'Consultas', icon: Search },
   { href: '/dashboard/financeiro', label: 'Financeiro', icon: DollarSign },
   { href: '/dashboard/ambiente', label: 'Ambiente', icon: Server },
