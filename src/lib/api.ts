@@ -1,6 +1,42 @@
-const AUTH_API = 'http://localhost:3001';
-const USER_API = 'http://localhost:3002';
-const TRANSACTION_API = 'http://localhost:3003';
+export type AppEnv = 'DEV' | 'HML' | 'PROD';
+
+/** Troque para `HML` ou `PROD` quando for apontar para homologação ou produção. */
+export const APP_ENV: AppEnv = 'DEV';
+
+const API_CONFIG: Record<AppEnv, { auth: string; user: string; transaction: string }> = {
+  DEV: {
+    auth: 'http://localhost:3001',
+    user: 'http://localhost:3002',
+    transaction: 'http://localhost:3003',
+  },
+  HML: {
+    auth: 'https://hml-auth.example.com',
+    user: 'https://hml-user.example.com',
+    transaction: 'https://hml-transaction.example.com',
+  },
+  PROD: {
+    auth: 'https://auth.example.com',
+    user: 'https://user.example.com',
+    transaction: 'https://transaction.example.com',
+  },
+};
+
+const {
+  auth: AUTH_API,
+  user: USER_API,
+  transaction: TRANSACTION_API
+} = API_CONFIG[APP_ENV];
+
+export function getApiBaseUrls() {
+  return API_CONFIG[APP_ENV];
+}
+
+const TOKEN_KEY = 'suporte_pdv_token';
+
+function getToken() {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem(TOKEN_KEY);
+}
 
 export async function loginRequest(cnpjCpf: string, password: string) {
   const res = await fetch(`${AUTH_API}/auth/login`, {
@@ -117,7 +153,7 @@ export async function searchTransactionsRequest(
   filters: SearchFilters,
 ) {
   const params = new URLSearchParams();
-  
+
   if (filters.startDate) params.append('startDate', filters.startDate);
   if (filters.endDate) params.append('endDate', filters.endDate);
   if (filters.licensePlate) params.append('licensePlate', filters.licensePlate);

@@ -12,6 +12,7 @@ import {
   LogOut,
   Menu,
   Search,
+  Server,
   UserCog,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -24,6 +25,7 @@ const navItems = [
   { href: '/dashboard/relatorios', label: 'Relatórios', icon: FileText },
   { href: '/dashboard/consultas', label: 'Consultas', icon: Search },
   { href: '/dashboard/financeiro', label: 'Financeiro', icon: DollarSign },
+  { href: '/dashboard/ambiente', label: 'Ambiente', icon: Server },
   { href: '/dashboard/perfil', label: 'Meu Perfil', icon: UserCog },
 ];
 
