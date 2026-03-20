@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { CreditCard, Loader2, ShieldCheck, Eye, EyeOff } from 'lucide-react';
+import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,7 +23,6 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const { user, login, isLoading: authLoading } = useAuth();
   const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
   const {
@@ -40,12 +40,11 @@ export default function LoginPage() {
   }, [user, authLoading, router]);
 
   const onSubmit = async (data: LoginFormData) => {
-    setError(null);
     try {
       await login(data.cnpjCpf, data.password);
       router.replace('/dashboard');
     } catch {
-      setError('CPF/CNPJ ou senha inválidos. Tente novamente.');
+      toast.error('CPF/CNPJ ou senha inválidos. Tente novamente.');
     }
   };
 
@@ -115,12 +114,6 @@ export default function LoginPage() {
                   <p className="text-xs text-destructive">{errors.password.message}</p>
                 )}
               </div>
-
-              {error && (
-                <div className="rounded-lg bg-destructive/10 border border-destructive/20 px-3 py-2">
-                  <p className="text-sm text-destructive">{error}</p>
-                </div>
-              )}
 
               <Button
                 type="submit"

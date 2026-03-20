@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2, User, Lock, Check, Eye, EyeOff } from 'lucide-react';
+import { Loader2, User, Lock, Eye, EyeOff } from 'lucide-react';
+import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { updateAliasRequest, updatePasswordRequest } from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -36,12 +37,8 @@ export default function PerfilPage() {
   const { user, refreshUser } = useAuth();
 
   const [aliasLoading, setAliasLoading] = useState(false);
-  const [aliasSuccess, setAliasSuccess] = useState(false);
-  const [aliasError, setAliasError] = useState('');
 
   const [passwordLoading, setPasswordLoading] = useState(false);
-  const [passwordSuccess, setPasswordSuccess] = useState(false);
-  const [passwordError, setPasswordError] = useState('');
 
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -59,8 +56,6 @@ export default function PerfilPage() {
 
   const handleAliasSubmit = async (data: AliasFormData) => {
     setAliasLoading(true);
-    setAliasError('');
-    setAliasSuccess(false);
 
     try {
       const token = localStorage.getItem(TOKEN_KEY);
@@ -68,10 +63,9 @@ export default function PerfilPage() {
 
       await updateAliasRequest(token, data.aliasName);
       await refreshUser();
-      setAliasSuccess(true);
-      setTimeout(() => setAliasSuccess(false), 3000);
+      toast.success('Apelido atualizado com sucesso.');
     } catch (err) {
-      setAliasError(err instanceof Error ? err.message : 'Erro ao atualizar apelido');
+      toast.error(err instanceof Error ? err.message : 'Erro ao atualizar apelido');
     } finally {
       setAliasLoading(false);
     }
@@ -79,19 +73,16 @@ export default function PerfilPage() {
 
   const handlePasswordSubmit = async (data: PasswordFormData) => {
     setPasswordLoading(true);
-    setPasswordError('');
-    setPasswordSuccess(false);
 
     try {
       const token = localStorage.getItem(TOKEN_KEY);
       if (!token) throw new Error('Não autenticado');
 
       await updatePasswordRequest(token, data.currentPassword, data.newPassword);
-      setPasswordSuccess(true);
+      toast.success('Senha alterada com sucesso.');
       passwordForm.reset();
-      setTimeout(() => setPasswordSuccess(false), 3000);
     } catch (err) {
-      setPasswordError(err instanceof Error ? err.message : 'Erro ao alterar senha');
+      toast.error(err instanceof Error ? err.message : 'Erro ao alterar senha');
     } finally {
       setPasswordLoading(false);
     }
@@ -152,16 +143,6 @@ export default function PerfilPage() {
                   </p>
                 )}
               </div>
-
-              {aliasError && (
-                <p className="text-sm text-destructive">{aliasError}</p>
-              )}
-
-              {aliasSuccess && (
-                <p className="text-sm text-green-600 flex items-center gap-1">
-                  <Check className="h-4 w-4" /> Apelido atualizado com sucesso!
-                </p>
-              )}
 
               <Button type="submit" disabled={aliasLoading}>
                 {aliasLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -255,16 +236,6 @@ export default function PerfilPage() {
                 </p>
               )}
             </div>
-
-            {passwordError && (
-              <p className="text-sm text-destructive">{passwordError}</p>
-            )}
-
-            {passwordSuccess && (
-              <p className="text-sm text-green-600 flex items-center gap-1">
-                <Check className="h-4 w-4" /> Senha alterada com sucesso!
-              </p>
-            )}
 
             <Button type="submit" disabled={passwordLoading}>
               {passwordLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

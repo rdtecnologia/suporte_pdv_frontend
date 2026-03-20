@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/table';
 import { StatusBadge } from '@/components/StatusBadge';
 import { getTransactionsRequest, Transaction } from '@/lib/api';
+import { toast } from 'sonner';
 
 const mockStats = {
   vendasSemana: 76,
@@ -72,7 +73,6 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [transactionsLoading, setTransactionsLoading] = useState(true);
-  const [transactionsError, setTransactionsError] = useState('');
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -83,7 +83,7 @@ export default function DashboardPage() {
         const data = await getTransactionsRequest(token);
         setTransactions(data);
       } catch (err) {
-        setTransactionsError(err instanceof Error ? err.message : 'Erro ao carregar transações');
+        toast.error(err instanceof Error ? err.message : 'Erro ao carregar transações');
       } finally {
         setTransactionsLoading(false);
       }
@@ -181,10 +181,6 @@ export default function DashboardPage() {
             {transactionsLoading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-              </div>
-            ) : transactionsError ? (
-              <div className="flex items-center justify-center py-8">
-                <p className="text-sm text-destructive">{transactionsError}</p>
               </div>
             ) : transactions.length === 0 ? (
               <div className="flex items-center justify-center py-8">

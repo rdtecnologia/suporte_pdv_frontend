@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Search, Car, Bike, Loader2, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -34,15 +35,13 @@ export default function ConsultasPage() {
 
   const [response, setResponse] = useState<SearchTransactionsResponse | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const handleSearch = async () => {
     setLoading(true);
-    setError('');
     try {
       const token = localStorage.getItem(TOKEN_KEY);
       if (!token) {
-        setError('Token não encontrado');
+        toast.error('Token não encontrado');
         return;
       }
 
@@ -61,7 +60,7 @@ export default function ConsultasPage() {
       const data = await searchTransactionsRequest(token, cleanFilters);
       setResponse(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao buscar transações');
+      toast.error(err instanceof Error ? err.message : 'Erro ao buscar transações');
     } finally {
       setLoading(false);
     }
@@ -91,7 +90,6 @@ export default function ConsultasPage() {
       limit: 20,
     });
     setResponse(null);
-    setError('');
   };
 
   const startRecord = response ? (response.page - 1) * filters.limit! + 1 : 0;
@@ -196,10 +194,6 @@ export default function ConsultasPage() {
           {loading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : error ? (
-            <div className="flex items-center justify-center py-8">
-              <p className="text-sm text-destructive">{error}</p>
             </div>
           ) : !response || response.data.length === 0 ? (
             <div className="flex items-center justify-center py-8">
