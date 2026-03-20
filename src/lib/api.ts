@@ -3,28 +3,62 @@ export type AppEnv = 'DEV' | 'HML' | 'PROD';
 /** Troque para `HML` ou `PROD` quando for apontar para homologação ou produção. */
 export const APP_ENV: AppEnv = 'DEV';
 
-const API_CONFIG: Record<AppEnv, { auth: string; user: string; transaction: string }> = {
+const API_CONFIG: Record<AppEnv, {
+  auth: string;
+  user: string;
+  transaction: string,
+  cadastra: string,
+  pos: string,
+  transaciona: string,
+  arquivo: string,
+  fiscaliza: string,
+  autentica: string,
+}> = {
   DEV: {
     auth: 'http://localhost:3001',
     user: 'http://localhost:3002',
     transaction: 'http://localhost:3003',
+    cadastra: 'https://cadastrah.timob.com.br',
+    pos: 'https://posh.timob.com.br',
+    transaciona: 'https://transacionah.timob.com.br',
+    arquivo: 'https://arquivoh.timob.com.br',
+    fiscaliza: 'https://fiscalizah.timob.com.br',
+    autentica: 'https://autenticah.timob.com.br',
   },
   HML: {
     auth: 'https://hml-auth.example.com',
     user: 'https://hml-user.example.com',
     transaction: 'https://hml-transaction.example.com',
+    cadastra: 'https://cadastrah.timob.com.br',
+    pos: 'https://posh.timob.com.br',
+    transaciona: 'https://transacionah.timob.com.br',
+    arquivo: 'https://arquivoh.timob.com.br',
+    fiscaliza: 'https://fiscalizah.timob.com.br',
+    autentica: 'https://autenticah.timob.com.br',
   },
   PROD: {
     auth: 'https://auth.example.com',
     user: 'https://user.example.com',
     transaction: 'https://transaction.example.com',
+    cadastra: 'https://cadastrah.timob.com.br',
+    pos: 'https://posh.timob.com.br',
+    transaciona: 'https://transacionah.timob.com.br',
+    arquivo: 'https://arquivoh.timob.com.br',
+    fiscaliza: 'https://fiscalizah.timob.com.br',
+    autentica: 'https://autenticah.timob.com.br',
   },
 };
 
 const {
   auth: AUTH_API,
   user: USER_API,
-  transaction: TRANSACTION_API
+  transaction: TRANSACTION_API,
+  cadastra: CADASTRA,
+  pos: POS,
+  transaciona: TRANSACIONA,
+  arquivo: ARQUIVO,
+  fiscaliza: FISCALIZA,
+  autentica: AUTENTICA,
 } = API_CONFIG[APP_ENV];
 
 export function getApiBaseUrls() {
