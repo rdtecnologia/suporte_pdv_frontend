@@ -182,6 +182,34 @@ export async function getTransactionsRequest(token: string) {
   return res.json() as Promise<Transaction[]>;
 }
 
+export interface SalesSummaryWindow {
+  valorBruto: number;
+  comissao: number;
+  sellerCommissionRate: number;
+}
+
+export interface SalesSummaryResponse {
+  domain: string | null;
+  day: SalesSummaryWindow;
+  week: SalesSummaryWindow;
+  month: SalesSummaryWindow;
+}
+
+export async function getSalesSummaryRequest(token: string) {
+  const res = await fetch(`${TRANSACTION_API}/transactions/sales-summary`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(
+      (body as { message?: string }).message || 'Erro ao carregar resumo de vendas',
+    );
+  }
+
+  return res.json() as Promise<SalesSummaryResponse>;
+}
+
 export interface BotPdvMe {
   id: number;
   domain: string;

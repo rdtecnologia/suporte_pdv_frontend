@@ -2,18 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import {
-  AlertTriangle,
+  Calendar,
   CalendarDays,
   DollarSign,
-  Percent,
-  ShoppingCart,
-  TrendingUp,
   Loader2,
   Car,
   Bike,
+  Percent,
+  TrendingUp,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -23,46 +22,75 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { StatusBadge } from '@/components/StatusBadge';
-import { getTransactionsRequest, Transaction } from '@/lib/api';
+import {
+  getSalesSummaryRequest,
+  getTransactionsRequest,
+  SalesSummaryResponse,
+  SalesSummaryWindow,
+  Transaction,
+} from '@/lib/api';
 import { toast } from 'sonner';
-
-const mockStats = {
-  vendasSemana: 76,
-  valorBrutoSemana: 438.0,
-  comissaoSemana: 43.8,
-  vendasDia: 20,
-  valorBrutoDia: 125.0,
-  comissaoDia: 12.5,
-  faturasAtraso: 2,
-  valorAtraso: 735.0,
-};
 
 const TOKEN_KEY = 'suporte_pdv_token';
 
-function StatCard({
-  label,
-  value,
+const emptyWindow: SalesSummaryWindow = {
+  valorBruto: 0,
+  comissao: 0,
+  sellerCommissionRate: 0,
+};
+
+const emptySummary: SalesSummaryResponse = {
+  domain: null,
+  day: { ...emptyWindow },
+  week: { ...emptyWindow },
+  month: { ...emptyWindow },
+};
+
+function formatMoney(n: number) {
+  return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function PeriodCard({
+  title,
   icon: Icon,
-  colorClass,
-  prefix = '',
+  data,
 }: {
-  label: string;
-  value: string | number;
+  title: string;
   icon: React.ElementType;
-  colorClass: string;
-  prefix?: string;
+  data: SalesSummaryWindow;
 }) {
   return (
-    <Card>
-      <CardContent className="p-4 flex items-center gap-4">
-        <div className={`p-2.5 rounded-lg ${colorClass}`}>
-          <Icon className="h-5 w-5" />
+    <Card className="overflow-hidden">
+      <CardContent className="p-4 space-y-4">
+        <div className="flex items-center gap-2 border-b border-border pb-3">
+          <div className="p-2 rounded-lg bg-primary/10 text-primary">
+            <Icon className="h-5 w-5" />
+          </div>
+          <h2 className="text-base font-semibold text-foreground">{title}</h2>
         </div>
-        <div>
-          <p className="text-sm text-muted-foreground">{label}</p>
-          <p className="text-xl font-bold text-foreground">
-            {prefix}{typeof value === 'number' ? value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : value}
-          </p>
+        <div className="space-y-3">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <div className="p-1.5 rounded-md bg-success/10 text-success">
+                <DollarSign className="h-4 w-4" />
+              </div>
+              <span className="text-sm">Valor bruto</span>
+            </div>
+            <p className="text-lg font-bold text-foreground tabular-nums shrink-0">
+              R$ {formatMoney(data.valorBruto)}
+            </p>
+          </div>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <div className="p-1.5 rounded-md bg-warning/10 text-warning">
+                <Percent className="h-4 w-4" />
+              </div>
+              <span className="text-sm">Comissão</span>
+            </div>
+            <p className="text-lg font-bold text-foreground tabular-nums shrink-0">
+              R$ {formatMoney(data.comissao)}
+            </p>
+          </div>
         </div>
       </CardContent>
     </Card>
@@ -73,23 +101,34 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [transactionsLoading, setTransactionsLoading] = useState(true);
+  const [salesSummary, setSalesSummary] = useState<SalesSummaryResponse>(emptySummary);
+  const [salesSummaryLoading, setSalesSummaryLoading] = useState(true);
 
   useEffect(() => {
-    const fetchTransactions = async () => {
-      try {
-        const token = localStorage.getItem(TOKEN_KEY);
-        if (!token) return;
+    const load = async () => {
+      const token = localStorage.getItem(TOKEN_KEY);
+      if (!token) {
+        setTransactionsLoading(false);
+        setSalesSummaryLoading(false);
+        return;
+      }
 
-        const data = await getTransactionsRequest(token);
-        setTransactions(data);
+      try {
+        const [tx, summary] = await Promise.all([
+          getTransactionsRequest(token),
+          getSalesSummaryRequest(token),
+        ]);
+        setTransactions(tx);
+        setSalesSummary(summary);
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : 'Erro ao carregar transações');
+        toast.error(err instanceof Error ? err.message : 'Erro ao carregar o dashboard');
       } finally {
         setTransactionsLoading(false);
+        setSalesSummaryLoading(false);
       }
     };
 
-    fetchTransactions();
+    load();
   }, []);
 
   return (
@@ -101,78 +140,17 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {mockStats.faturasAtraso > 0 && (
-        <div className="flex items-start gap-3 rounded-lg bg-destructive/5 border border-destructive/20 px-4 py-3">
-          <AlertTriangle className="h-5 w-5 text-destructive mt-0.5 shrink-0" />
-          <div>
-            <p className="text-sm font-medium text-destructive">Faturas em atraso</p>
-            <p className="text-sm text-muted-foreground">
-              Você possui {mockStats.faturasAtraso} fatura(s) em atraso totalizando{' '}
-              <span className="font-semibold text-destructive">
-                R$ {mockStats.valorAtraso.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-              </span>
-            </p>
-          </div>
+      {salesSummaryLoading ? (
+        <div className="flex justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <PeriodCard title="Vendas do dia" icon={TrendingUp} data={salesSummary.day} />
+          <PeriodCard title="Vendas da semana" icon={CalendarDays} data={salesSummary.week} />
+          <PeriodCard title="Vendas do mês" icon={Calendar} data={salesSummary.month} />
         </div>
       )}
-
-      <section className="space-y-3">
-        <div className="flex items-center gap-2">
-          <CalendarDays className="h-5 w-5 text-primary" />
-          <h2 className="text-base font-semibold text-foreground">Vendas da Semana</h2>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <StatCard
-            label="Créditos"
-            value={mockStats.vendasSemana}
-            icon={ShoppingCart}
-            colorClass="bg-primary/10 text-primary"
-          />
-          <StatCard
-            label="Valor Bruto"
-            value={mockStats.valorBrutoSemana}
-            icon={DollarSign}
-            colorClass="bg-success/10 text-success"
-            prefix="R$ "
-          />
-          <StatCard
-            label="Comissão"
-            value={mockStats.comissaoSemana}
-            icon={Percent}
-            colorClass="bg-warning/10 text-warning"
-            prefix="R$ "
-          />
-        </div>
-      </section>
-
-      <section className="space-y-3">
-        <div className="flex items-center gap-2">
-          <TrendingUp className="h-5 w-5 text-primary" />
-          <h2 className="text-base font-semibold text-foreground">Vendas do Dia</h2>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <StatCard
-            label="Créditos"
-            value={mockStats.vendasDia}
-            icon={ShoppingCart}
-            colorClass="bg-primary/10 text-primary"
-          />
-          <StatCard
-            label="Valor Bruto"
-            value={mockStats.valorBrutoDia}
-            icon={DollarSign}
-            colorClass="bg-success/10 text-success"
-            prefix="R$ "
-          />
-          <StatCard
-            label="Comissão"
-            value={mockStats.comissaoDia}
-            icon={Percent}
-            colorClass="bg-warning/10 text-warning"
-            prefix="R$ "
-          />
-        </div>
-      </section>
 
       <section className="space-y-3">
         <h2 className="text-base font-semibold text-foreground">10 últimas transações efetuadas</h2>
