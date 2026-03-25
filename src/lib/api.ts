@@ -261,3 +261,89 @@ export async function searchTransactionsRequest(
 
   return res.json() as Promise<SearchTransactionsResponse>;
 }
+
+export interface SellerSettlementDto {
+  id: number;
+  sellerId: number;
+  domain: string;
+  periodType: 'weekly' | 'monthly';
+  periodStart: string;
+  periodEnd: string;
+  grossAmount: number;
+  commissionAmount: number;
+  netAmount: number;
+  status: string;
+  interCodigoSolicitacao: string | null;
+  seuNumero: string;
+  linhaDigitavel: string | null;
+  pixCopiaCola: string | null;
+  pdfUrl: string | null;
+  issuedAt: string | null;
+  paidAt: string | null;
+  failureReason: string | null;
+  createdAt: string;
+}
+
+export interface SellerSettlementPreviewDto {
+  domain: string | null;
+  weeklyBillingLevel: number;
+  sellerCommissionRate: number;
+  unsettledGrossWeek: number;
+  unsettledGrossMonth: number;
+}
+
+export async function getSellerSettlementsRequest(token: string) {
+  const res = await fetch(`${TRANSACTION_API}/seller-settlements`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(
+      (body as { message?: string }).message || 'Erro ao carregar liquidações',
+    );
+  }
+  return res.json() as Promise<SellerSettlementDto[]>;
+}
+
+export async function getSellerSettlementPreviewRequest(token: string) {
+  const res = await fetch(`${TRANSACTION_API}/seller-settlements/preview`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(
+      (body as { message?: string }).message || 'Erro ao carregar prévia financeira',
+    );
+  }
+  return res.json() as Promise<SellerSettlementPreviewDto>;
+}
+
+/** Baixa o PDF do boleto (dispara download no browser). */
+export async function downloadBoletoPdfRequest(token: string, settlementId: number) {
+  const res = await fetch(
+    `${TRANSACTION_API}/seller-settlements/${settlementId}/boleto-pdf`,
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(
+      (body as { message?: string }).message || 'Erro ao baixar boleto',
+    );
+  }
+  const blob = await res.blob();
+  const cd = res.headers.get('Content-Disposition');
+  let filename = `boleto-${settlementId}.pdf`;
+  if (cd) {
+    const m = /filename="?([^";]+)"?/i.exec(cd);
+    if (m?.[1]) filename = m[1];
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
